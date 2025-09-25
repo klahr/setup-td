@@ -1,0 +1,59 @@
+name: Setup td
+description: Setup td for use in GitHub Actions
+
+inputs:
+  version:
+    description: 'The version of td to install (e.g. "0.10").'
+    required: false
+    default: 'master'
+  email:
+    description: 'The email to use for td login.'
+    required: true
+  password:
+    description: 'The password to use for td login.'
+    required: true
+  host:
+    description: 'The td host to use.'
+    required: true
+  port:
+    description: 'The port to use for td.'
+    required: true
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Prepare install dir & PATH
+      shell: bash
+      run: |
+        set -euo pipefail
+        mkdir -p "$HOME/.local/bin"
+        echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
+    - name: Install
+      shell: bash
+      run: |
+        set -euo pipefail
+        url="https://git.sr.ht/~klahr/td/blob/${{ inputs.version }}/td.sh?raw=1"
+        curl -fsSL --retry 3 "$url" -o "$HOME/.local/bin/td"
+        chmod +x "$HOME/.local/bin/td"
+        command -v td >/dev/null || { echo "td not on PATH"; exit 1; }
+
+    - name: Configure
+      shell: bash
+      run: |
+        mkdir -p "$HOME/.config/td"
+        config_file="$HOME/.config/td/config.yaml"
+        echo "server:" >> "$config_file"
+        echo "  host: \"${{ inputs.host }}\"" >> "$config_file"
+        echo "  port: ${{ inputs.port }}" >> "$config_file"
+        echo "client:" >> "$config_file"
+        echo "  cookie_file: \"$HOME/.config/td/cookies.txt\"" >> "$config_file"
+        echo "cli:" >> "$config_file"
+        echo "  output: \"json\"" >> "$config_file"
+
+    - name: Login
+      shell: bash
+      run: |
+        set -euo pipefail
+        td login "${{ inputs.email }}" <<< "${{ inputs.password }}"
+

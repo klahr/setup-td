@@ -1,0 +1,26 @@
+name: Example
+on:
+  workflow_dispatch:
+
+jobs:
+  runs-on: ubuntu-latest
+  steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup td
+      uses: klahr/setup-td@master
+      with:
+        email: ${{ secrets.TD_EMAIL }}
+        password: ${{ secrets.TD_PASSWORD }}
+        host: ${{ secrets.TD_HOST }}
+        port: ${{ secrets.TD_PORT }}
+
+    - name: Compile
+      run:
+        echo "Compiling the project..."
+        if ! out=$(gcc example/main.c 2>&1); then
+          echo "\`\`\`$out\`\`\`" | td task add "Run ${{ github.run_id }} - Compilation failed"
+          exit 1
+        fi
+
