@@ -18,7 +18,7 @@ jobs:
           port: ${{ secrets.TD_PORT }}
 
       - name: Compile
-        run:
+        run: |
           echo "Compiling the project..."
           if ! out=$(gcc example/main.c 2>&1); then
             echo "\`\`\`$out\`\`\`" | td task add "Run ${{ github.run_id }} - Compilation failed"
