@@ -19,8 +19,6 @@ jobs:
 
       - name: Compile
         run: |
-          echo "Compiling the project..."
           if ! out=$(gcc example/main.c 2>&1); then
-            echo "\`\`\`$out\`\`\`" | td task add "Run ${{ github.run_id }} - Compilation failed"
-            exit 1
+            echo "\`\`\`$out\`\`\`" | td task add "Run #${{ github.run_number }} - Compilation failed"
           fi
